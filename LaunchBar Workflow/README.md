@@ -1,0 +1,1 @@
+# [LaunchBar plugin](http://www.obdev.at/products/launchbar/index.html).
