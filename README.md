@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # TaskPaper Actions
 A set of python scripts, URL schemes and launcher workflows to aid in working with elaborate TaskPaper projects
 
@@ -10,3 +11,7 @@ A set of python scripts, URL schemes and launcher workflows to aid in working wi
 - Rather than display the next actions, tag them with @next. Tag also any corresponding subtask so that it will appear in search;
 - Determine next action for a specific project, based on user input;
 - Revision mode?
+=======
+TaskPaper-Actions
+=================
+>>>>>>> e6b9534415fdd312fbdb65e6e38d33f2a858aadc
