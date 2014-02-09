@@ -1,10 +1,8 @@
 # -*- coding: UTF-8 -*-
- 
+
 import re
 import itertools
- 
-# Variable used for testing purposes. When in production this will be passed via
-# file, clipboard or command line argument
+
 arg = [
 '/var/mobile/Applications/EE962478-374F-46A3-BAA9-6A276B8EB00D/Documents/grabArgs.py', 
 'Project Done:\n\t- Task 01 @done\n\t\t- Subtask 1.01\n\t\tEste é um comentário malandro\n\t\t- Subtask 1.02\n\t\t\t- Subsubtask 1.01 @done\n\t\t\tEste é outro comentário malandro\n\t\t\t- Subsubtask 1.02\n\t\t\t\t- Subsubsubtask 1.01\n\t\t\t- Subsubtask 1.03\n\t\t- Subtask 1.03\n\t\t- Subtask 1.04\n\t- Task 02 @done\n\t\t- Subtask 2.01 @done\n\t\t- Subtask 2.02\n\t\t\t- Subsubtask 2.01 @done\n\t\t\t- Subsubtask 2.02\n\t\t\t\t- Subsubsubtask 2.01 @done\n\t\t\t- Subsubtask 2.03 @done\n\t\t- Subtask 2.03 @done\n\t\t- Subtask 2.04 @done\n\t- Task 03 @done\n\t\t- Subtask 3.01 @done\n\t\t- Subtask 3.02\n\t- Task 04 @done\n\t\t- Subtask 4.01 @done\n\t\t- Subtask 4.02 @done\n\t- Task 05 @done\n\t\t- Subtask 5.01 @done\n\t\t- Subtask 5.02 @done\n\t\t\t- Subsubtask 5.03 @done\n\t\t- Subtask 5.03 @done\n\t- Task 06 @done\n\t\t- Subtask 6.01\n\t\t\t- Subsubtask 6.01 @done\n\t\t\t- Subsubtask 6.02 @done\n\t\t- Subtask 6.02 @done\n\t- Task 07 @done\n\t\t- Subtask 7.01\n\t\t\t- Subsubtask 7.01 @done\n\t\t- Subtask 7.02\n\t\t\t- Subsubtask 7.02 @done\n\t- Task 08 @done\n\t\t- Subtask 8.01\n\t\t\t- Subsubtask 8.01 @done\n\t\t\t- Subsubtask 8.02\n\t\t\t\t- Subsubsubtask 8.01 @done\n\t\t\t\t- Subsubsubtask 8.02\n\t\t\t\t\t- Subsubsubsubtask 8.01 @done\n\t\t\t\t- Subsubsubtask 8.03 @done\n\t\t\t- Subsubtask 8.03 @done\n\t\t- Subtask 8.02 @done\n\t\t- Subtask 8.03\n\t\t\t- Subsubtask 8.04 @done\n\t\t\t- Subsubtask 8.05\n\t\t\t\t- Subsubsubtask 8.04\n\t\t\t\t\t- Subsubsubsubtask 8.02 @done\n\t\t\t- Subsubtask 8.06 @done\n\t- Task 09 @done\n\tThis is a comment\n\t\t- Subtask 9.01 @done\n\t\tThis is a subtask comment\n\t\t- Subtask 9.02\n\t\tAnother comment\n\t\t\t- Subsubtask 9.01 @done\n\t\t\t- Subsubtask 9.02 @done\n\t\t\tWhy so many comments?\n\t\t\t- Subsubtask 9.03\n\t\t\t\t- Subsubsubtask 9.01 @done\n\t\t\t\tJust another comment to break your code\n\t\t\t\t- Subsubsubtask 9.02\n\t\t\t\tBreak, break, break\n\t\t\t\t\t- Subsubsubsubtask 9.01 @done\n\t\t\t\t\tThis is the last comment, I promise\n\t\t\t\t- Subsubsubtask 9.03 @done\n\t\t\t\tI lied.\n\t\t\t- Subsubtask 9.04\n\t\t\t\t- Subsubsubtask 9.03 @done\n\t\t\t\tI love lying\n\t\t\t- Subsubtask 9.05 @done\n\t\t- Subtask 9.03 @done\n\t\tOk, this is truly the last comment.\n\t\tNah.',
@@ -23,7 +21,7 @@ def MarkAsDone(project):
 		task_count = task_desc.count('\t')
 		task_index = tasks.index(index_task)
 		if next_count > task_count:
-			subtasks = list(itertools.takewhile(lambda x:x[1].count('\t') > task_count, tasks[task_index+1:]))
+			subtasks = list(itertools.takewhile(lambda x:x[1].count('\t') > task_count, tasks[task_index + 1:]))
 			if re.search('\t+-\s.*@done.*', task_desc):
 				for subtask in subtasks:
 					if re.search('(?!.*@done)\t+-\s.*', subtask[1]):
@@ -35,22 +33,25 @@ def MarkAsDone(project):
 					break
 	return project
 
+def nextActions(projects):
+	for proj in projects:
+		tasks = [(x,y) for x,y in enumerate(MarkAsDone(proj))]
+		for task in tasks:
+			if re.search('(?!.*@done)\t+-\s.*', task[1]):
+				if tasks[0][1].startswith('/'):
+					proj[task[0]]+=' @next'
+				else:
+					subtasks = list(itertools.takewhile(lambda x:x[1].count('\t') > task[1].count('\t') or re.search('(?!.*:$)\t+\w.+', task[1]), tasks[tasks.index(task)+1:]))
+					for subtask in subtasks:
+						if re.search('(?!.*@done)\t+-\s.*', subtask[1]):
+							proj[subtask[0]]+=' @next'
+					proj[task[0]]+=' @next'
+					break
+	return projects
+
+					
 allTasks = arg[3].split('\n\n')
-projects = [filter(None,proj.split('\n')) for proj in allTasks]
- 
-for proj in projects:
-	tp = MarkAsDone(proj)
-	if len(tp)>0:
-		tempstr = "\n".join(tp)
-	if tp[0].startswith("/"):
-		project = re.compile("(^[\\w/].*:*(\\n\\w.*)*)", re.M) # Find Project Name and Project Comments
-		tasks = re.compile("^[^/][\\t\\w]*-??\\s??(?!.*@done).+\\n*", re.M) # Finds every line not containing @done
-		print project.match(tempstr).group() # Prints the Project name and comment
-		print "".join(tasks.findall(tempstr)) # Findall creates a list, so we print it with a join
-	else:
-		project = re.compile("(^[\\w/].*:*(\\n\\w.*)*)", re.M)
-		ttasks = re.compile("(?!.*@done)(\\t-\\s.*(\\n\\t{2,}-\\s.+)*(\\n\\t+\\w.+(\\n\\t{2,}-\\s.+)*)*)", re.M) # Main match. Will eliminate tasks with @done
-		tasks = re.compile("[\\t]+-??\\s??(?!.*@done).+\\n*", re.M) # Second match, will eliminate sub(sub)tasks with @done
-		if ttasks.search(tempstr) is not None:
-			print project.match(tempstr).group()
-			print "".join(tasks.findall(ttasks.search(tempstr).group()))
+projects = [filter(None, proj.split('\n')) for proj in allTasks]
+output = '\n\n'.join(['\n'.join([str(task) for task in proj]) for proj in nextActions(projects)])
+
+print output
