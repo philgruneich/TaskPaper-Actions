@@ -28,11 +28,11 @@ def MarkAsDone(project):
 				for subtask in subtasks:
 					if re.search('(?!.*@done)\t+-\s.*', subtask[1]):
 						project[subtask[0]]+=' @done'
-					else:
-						if all('@done' in subtask[1] for subtask in subtasks):
-							project[index_task[0]]+=' @done'
-							MarkAsDone(project)
-							break
+			else:
+				if all('@done' in subtask[1] for subtask in subtasks):
+					project[index_task[0]]+=' @done'
+					MarkAsDone(project)
+					break
 	return project
 
 allTasks = arg[3].split('\n\n')
