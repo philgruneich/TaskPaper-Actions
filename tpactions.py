@@ -1,75 +1,91 @@
 import re
 import itertools
-
-argument = '''Inbox:
-
-Project 01:
-This is a parallel project with a parallel task with subtasks
-	- Task 01
-	- Task 02 @done
-	- Task 03 with subtasks all parallel @done
-	Lalalal:ala
-		- Subtask 01
-		- Subtask 02
-		- Subtask 03
-	- Task 04
-
-Project 02:
-This is a parallel project with a sequential subproject
-	- Task 01
-	Subproject 01::
-		- Subtask 01 @done
-		- Subtask 02 @done
-	- Task 02
-
-Project 03::
-This is a sequential project with a parallel subproject
-	Subproject 01:
-		- Subtask 01 @done
-		- Subtask 02 @done
-		- Subtask 03 @done
-	- Task 01
-	- Task 02
-
-Project 04::
-This is a sequential project with a sequential subproject
-	Subproject 01::
-		- Subtask 01
-		- Subtask 02
-		- Subtask 03
-	- Task 01
-	- Task 02
-
-Project Nightmare::
-This is supposed to be the final proof of this concept
-	Subproject 01::
-		- Subtask 01
-			- SubSubtask 01
-			- SubSubtask 02
-		- Subtask 02
-	- Task 01
-	- Task 02
-
-Project Supreme:
-This is the ultimate test for this script
-	Subproject 01::
-		- Subtask 01 @done
-			- Subsubtask 01
-			- Subsubtask 02
-			Subsubproject 03::
-				- Subsubsubtask 01
-				- Subsubsubtask 02
-			- Subsubtask 03
-		- Subtask 02
-	Pokemon 01:
-		Subsubproject 02:: @done
-			- Subsubsubsubtask 05
-			- Subsubsubsubtask 04
-		- Subsubtask 911'''
+import sys
 
 class na:
-	def __init__(self,projects):
+	def __init__(self):
+		debug = '''Inbox:
+
+		Project 01:
+		This is a parallel project with a parallel task with subtasks
+			- Task 01
+			- Task 02 @done
+			- Task 03 with subtasks all parallel @done
+			Lalalal:ala
+				- Subtask 01
+				- Subtask 02
+				- Subtask 03
+			- Task 04 @waiting(developer)
+
+		Project 02:
+		This is a parallel project with a sequential subproject
+			- Task 01
+			Subproject 01::
+				- Subtask 01 @done
+				- Subtask 02 @done
+			- Task 02
+
+		Project 03::
+		This is a sequential project with a parallel subproject
+			Subproject 01:
+				- Subtask 01 @done
+				- Subtask 02 @done
+				- Subtask 03 @done
+			- Task 01
+			- Task 02 @waiting(developer)
+
+		Project 04::
+		This is a sequential project with a sequential subproject
+			Subproject 01::
+				- Subtask 01
+				- Subtask 02
+				- Subtask 03
+			- Task 01 @hold
+			- Task 02
+
+		Project Nightmare::
+		This is supposed to be the final proof of this concept
+			Subproject 01::
+				- Subtask 01
+					- SubSubtask 01
+					- SubSubtask 02
+				- Subtask 02
+			- Task 01
+			- Task 02
+
+		Project Supreme:
+		This is the ultimate test for this script
+			Subproject 01::
+				- Subtask 01 @done
+					- Subsubtask 01
+					- Subsubtask 02
+					Subsubproject 03::
+						- Subsubsubtask 01
+						- Subsubsubtask 02
+					- Subsubtask 03
+				- Subtask 02
+			Pokemon 01:
+				Subsubproject 02:: @done
+					- Subsubsubsubtask 05
+					- Subsubsubsubtask 04
+				- Subsubtask 911'''
+		try:
+			projects = sys.argv[1] # Checks if the user submitted the tasks via Launch Center Pro or Drafts.
+		except IndexError:
+			try: # This block prompts the user for a file.
+				import Tkinter, tkFileDialog # These modules are absent on Pythonista.
+				Tkinter.Tk().withdraw()
+				try:
+					file = open(tkFileDialog.askopenfilename(),'r') # This block checks if the user selected a file.
+					projects = file.read()
+					file.close()
+				except IOError:
+					projects = debug # Fallback if the user didn't select a file.
+			except ImportError:
+				projects = debug # Fallback if the user doesn't have the modules, probably on Pythonista.
 		# Generates a concatenated list of our projects
+		skipTags = ['@done','@waiting','@hold'] # Customizable list of tags to skip
+		self.tags = '(%s)+?' % '|'.join(skipTags) # Converts the previous list into a string to be embed into the regular expression: (@done|@waiting|@hold)+?
 		self.projects = [proj.splitlines() for proj in projects.split('\n\n')]
 		
 	def done(self,proj):
@@ -135,7 +151,7 @@ class na:
 #			proj = self.done(proj)
 #			print self.done(proj)
 			self.control = set()
-			self.enum = [(x,y) for x,y in enumerate(self.done(proj)) if re.search('(?!.*@done)\t*(-\s\w.+|.+:{1,2}(?!\s?\w)(\s@.+)?)',y)]
+			self.enum = [(x,y) for x,y in enumerate(self.done(proj)) if re.search('(?!.*%s)\t*(-\s\w.+|.+:{1,2}(?!\s?\w)(\s@.+)?)' % self.tags,y)]
 			if len(self.enum) > 1: # Proceeds if the project is not empty.
 				for task in self.enum[1:]: # Loops skipping the project name.
 					task_desc = task[1] # Description of task
@@ -163,4 +179,4 @@ class na:
 						break
 		return '\n\n'.join(['\n'.join([str(task) for task in proj]) for proj in self.projects])
 
-print na(argument).actions()
+print na().actions()
