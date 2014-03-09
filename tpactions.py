@@ -1,3 +1,5 @@
+# -*- coding: UTF-8 -*-
+
 import re
 import itertools
 import sys
@@ -87,7 +89,8 @@ class na:
 		skipTags = ['@done','@waiting','@hold'] # Customizable list of tags to skip
 		self.tags = '(%s)+?' % '|'.join(skipTags) # Converts the previous list into a string to be embed into the regular expression: (@done|@waiting|@hold)+?
 		self.projects = [proj.splitlines() for proj in projects.split('\n\n')]
-		
+
+	# Checks for tasks that were supposed to be marked as done.
 	def done(self,proj):
 		tasks = [(x,y) for x,y in enumerate(proj) if re.search('\t*(-\s\w.+|.+:{1,2}(?!\s?\w)(\s@.+)?)',y)]
 		for task in tasks:
@@ -112,7 +115,7 @@ class na:
 						break
 		return proj
 
-# This lovely function loops through subtasks when a task has any
+# Loops through subtasks if the task has any
 	def subtasking(self,subtasks,sequential):
 		txSubTasks = [y for x,y in subtasks] # This is a list of string, equivalent to our proj from the main loop
 		enumSubTasks = [(x,y) for x,y in enumerate(txSubTasks)] # This is a enumerated list, equivalent to our tasks from the main loop
@@ -148,8 +151,6 @@ class na:
 #Defining our next actions function.
 	def actions(self):
 		for proj in self.projects:
-#			proj = self.done(proj)
-#			print self.done(proj)
 			self.control = set()
 			self.enum = [(x,y) for x,y in enumerate(self.done(proj)) if re.search('(?!.*%s)\t*(-\s\w.+|.+:{1,2}(?!\s?\w)(\s@.+)?)' % self.tags,y)]
 			if len(self.enum) > 1: # Proceeds if the project is not empty.
