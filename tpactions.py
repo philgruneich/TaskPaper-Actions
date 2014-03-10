@@ -97,8 +97,6 @@ class na:
 			task_desc = task[1]
 			task_count = task_desc.count('\t')
 			task_index = tasks.index(task)
-			if '@next' in task_desc:
-				proj[task[0]] = task_desc.replace(' @next','')
 			try:
 				next_task = tasks[tasks.index(task) + 1]
 				next_count = next_task[1].count('\t')
