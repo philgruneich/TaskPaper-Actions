@@ -78,7 +78,8 @@ class na:
 				import Tkinter, tkFileDialog # These modules are absent on Pythonista.
 				Tkinter.Tk().withdraw()
 				try:
-					file = open(tkFileDialog.askopenfilename(),'r') # This block checks if the user selected a file.
+					self.filePath = tkFileDialog.askopenfilename()
+					file = open(self.filePath,'r') # This block checks if the user selected a file.
 					projects = file.read()
 					file.close()
 				except IOError:
@@ -178,6 +179,23 @@ class na:
 					proj[task[0]]+=' @next'
 					if proj[0].endswith('::'): # Breaks if project is sequential.
 						break
-		return '\n\n'.join(['\n'.join([str(task) for task in proj]) for proj in self.projects])
-
-print na().actions()
+		return self.output()
+	def output(self):
+		projects = '\n\n'.join(['\n'.join([str(task) for task in proj]) for proj in self.projects])
+		try:
+			import webbrowser
+			if webbrowser.can_open('drafts://'):
+				from urllib import quote
+				webbrowser.open('drafts://x-callback-url/create?text=%s&action=Update%20TaskPaper' % quote(projects))
+			else:
+				print projects
+		except:
+				try:
+					file = open(self.filePath,'w')
+					projects = file.write(projects)
+					file.close()
+				except:
+					print projects
+					
+na = na()
+na.actions()
